@@ -4,32 +4,60 @@
 #include <random>
 #include <time.h>
 #include <fstream>
+#include <iomanip>
+#include <string>
+#include <map>
 
 #define LYRAND (double)rand()/RAND_MAX
 
 using namespace std;
 
+class armm{
+public:
+    int mu;
+    int sigma;
+    void init();
+};
+void armm::init(){
+    mu=0;
+    sigma=0;
+}
 int main(){
+
     srand(time(NULL));
-const int nrolls=10000;  // number of experiments
-const int nstars=100;    // maximum number of stars to distribute
+    int mu;
+    int sigma;
+    int ans;
+    int NArms;
 
-std::default_random_engine generator;
-std::normal_distribution<double> distribution(5.0,2.0);
+    vector<armm> MrManyArms;
 
-int p[10]={};
 
-for (int i=0; i<nrolls; ++i) {
-  double number = distribution(generator);
-  if ((number>=0.0)&&(number<10.0)) ++p[int(number)];
-}
+    mu =10;
+    sigma=1;
+    NArms= 10;
 
-std::cout << "normal_distribution (5.0,2.0):" << std::endl;
 
-for (int i=0; i<10; ++i) {
-  std::cout << i << "-" << (i+1) << ": ";
-  std::cout << std::string(p[i]*nstars/nrolls,'*') << std::endl;
-}
+    std::random_device rd;
+    for (int i=0; i<NArms;i++){
+      armm c;
+      c.init();
+      c.mu=1;
+      c.sigma=2;
+      MrManyArms.push_back(c);
+    }
 
-return 0;
+
+
+    std::mt19937 e2(rd());
+
+    //ans= std::normal_distribution<< dist(mu, sigma);
+
+    std::cout << "aids" << std::endl;
+    for (int i=0; i<MrManyArms.size(); i++){
+            //cout << alldecks[i].decklocation << " ";
+            cout << MrManyArms[i].mu << " ";
+            cout << MrManyArms[i].sigma << endl;
+    }
+
 }
