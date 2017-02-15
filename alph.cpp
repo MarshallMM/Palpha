@@ -24,6 +24,12 @@ public:
   double reward;
   void init();
 };
+class lootclass{
+public:
+  double valueTotal;
+  double averagevalue;
+  void init();
+};
 void armm::init(){
     double mu=0;
     sigma=0;
@@ -32,6 +38,10 @@ void pullaction::init(){
     double reward=0;
     pullnumber=0;
 }
+void lootclass::init(){
+    double valueTotal=0;
+    double averagevalue=0;
+}
 
 
 int main(){
@@ -39,6 +49,8 @@ int main(){
     srand(time(NULL));
     int mu;
     int sigma;
+    int epsilon; //exploration chance, 0-1
+    int alpha; //memory retaining rate 0-1
     int ans;
     int NArms;
     int averagestart;
@@ -50,13 +62,17 @@ int main(){
     vector<armm> MrManyArms;
     vector<double> pullsmatrix;
     vector<pullaction> pullhistory;
+    vector<double> loot;
+
 
 
     mu =10;
     sigma=1;
-    NArms= 5; // number of arms of the bandit
+    epsilon=0.25; //exploration chance 0-1
+    alpha=0.1;  //memory retaining rate 0-1
+    NArms= 3; // number of arms of the bandit
     averagestart=100; //base average
-    Npulls=9;
+    Npulls=5;
 
 //asks whether player is playing
     cout << "Are you human? 1=yes, 0=no" << endl;
@@ -71,6 +87,7 @@ int main(){
       c.mu= double( averagestart+50*LYRAND-50*LYRAND);
       c.sigma=averagestart/10+30*LYRAND;
       MrManyArms.push_back(c);
+      loot.push_back(averagestart); //builds loot vector
     }
     //builds vector of pull rewards, pulls 1st->pulls2nd... pulls 1st again->repeats until Npulls of each arm
     for (int i=0; i<Npulls*NArms; i++){
@@ -88,18 +105,37 @@ int main(){
 
     //ans= std::normal_distribution<< dist(mu, sigma);
 //game starts here
-if (player==1 && Npulls < 8){
+if (player==1 && Npulls < 8){ //human plays
   for(int i=0; i<Npulls; i++){
     cout << "pick an arm to pull" << endl;
     cin >> p;
     pullaction a;
     a.init();
-    a.pullnumber =p;
-    a.reward =pullsmatrix[i%p];
-    pullhistory.push_back(a);
+    a.pullnumber =p;// lever that is being pulled
+    a.reward =pullsmatrix[i%p+NArms*i]; //reward of that lever
+    pullhistory.push_back(a);//records which lever was pulled and its reward
+    loot[p-1]=i; //loot[p-1]*(1-alpha)+alpha*pullsmatrix[i%p+NArms*i];
   }
+}
+else{ //robot plays
+  for(int i=0; i<Npulls; i++){
+    // exploration
+    if(LYRAND<epsilon+1){
+      pullaction a;
+      int p;
+      p=1+floor(NArms*LYRAND);
+      a.init();
+      a.pullnumber =p;// lever that is being pulled
+      a.reward =pullsmatrix[i%p+NArms*i]; //reward of that lever
+      pullhistory.push_back(a);
+      loot[p-1]=i; //loot[p-1]*(1-alpha)+alpha*pullsmatrix[i%p+NArms*i];
+    }
+  }
+    //exploitation
 
 }
+
+
 
 
 
@@ -112,7 +148,7 @@ if (player==1 && Npulls < 8){
     }
 //outputs the pull rewards
     for (int i=0; i<pullsmatrix.size(); i++){
-            //cout << pullsmatrix[i] << endl;
+            cout << pullsmatrix[i] << endl;
     }
 //outputs actions and rewards
   std::cout << "Arm pulled and reward" << std::endl;
@@ -120,5 +156,9 @@ if (player==1 && Npulls < 8){
     cout << pullhistory[i].pullnumber << " ";
     cout << pullhistory[i].reward << endl;
 
+  }
+  cout << "Loot vector" << std::endl;
+  for (int i=0; i<loot.size(); i++){
+    cout << loot[i] <<endl;
   }
 }
