@@ -161,7 +161,7 @@ int main(){
       if(LYRAND<epsilon){
         direction=floor(LYRAND*4);//picks a random direction
         agent_old_state=agent_state;
-        agent_state=move(agent_state,direction,hight,width);
+        agent_state=move(agent_state,direction,hight,width);//moves the agent
 
         //values the move
         if(agent_state==goal_state){
@@ -169,8 +169,8 @@ int main(){
         }
         else{
           actionValue=-1;
-        }
-        actionQ=qTable[agent_state];
+        }//end of evaluating move
+        actionQ=qTable[agent_state];//gets the vector of actions for the state
         maxQ=0;
         for (int j=0; j<actionQ.size(); j++) //this loop get the maxQ
             {
@@ -183,10 +183,45 @@ int main(){
           qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
           //cout << maxQ << endl;
         }
-      }
+        
+        
+        
+      }//end exploration
       else{//exploitation
-
-      }
+        for (int j=0; j<actionQ.size(); j++) //this loop get the maxQ index
+            {
+                if (maxQ<actionQ[j])
+                {
+                    maxQ=actionQ[j];
+                    direction=j;
+                }
+            }
+        agent_old_state=agent_state;
+        agent_state=move(agent_state,direction,hight,width);//moves the agent
+        //values the move
+        if(agent_state==goal_state){
+          actionValue=100;
+        }
+        else{
+          actionValue=-1;
+        }//end of evaluating move
+        actionQ=qTable[agent_state];//gets the vector of actions for the state
+        maxQ=0;
+        for (int j=0; j<actionQ.size(); j++) //this loop get the maxQ
+            {
+                if (maxQ<actionQ[j])
+                {
+                    maxQ=actionQ[j];
+                }
+            }
+        if(agent_state!=agent_start_state && agent_state!=agent_old_state){
+          qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
+          //cout << maxQ << endl;
+        }
+        
+        
+        
+      }//end exploitation
     }
     if(agent_state == goal_state){//reset agent back to start if goal is reached
       agent_state=agent_start_state;
