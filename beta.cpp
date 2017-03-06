@@ -96,7 +96,7 @@ int main(){
   gamma= 0.9;
 
 
-  max_iterations=100000; //max number of iterations
+  max_iterations=1000000; //max number of iterations
   Nstates=hight*width; //number of states
   goal_state=floor(Nstates*LYRAND); //randomly makes a goal state
   agent_start_state=floor(Nstates*LYRAND); //randomly makes a start state
@@ -198,8 +198,10 @@ int main(){
               }
           }
       if(agent_state!=agent_start_state && agent_state!=agent_old_state){
-        qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
-        //cout << maxQ << endl;
+        //pure q learner
+        //qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
+        //qlearner+AVL
+        qTable[agent_old_state][direction]=qTable[agent_old_state][direction]+alpha*(actionValue+gamma*maxQ-qTable[agent_old_state][direction]);
       }
     }
     if(agent_state == goal_state){//reset agent back to start if goal is reached
@@ -219,6 +221,6 @@ int main(){
     cout << qTable[i][0]<<" "<<qTable[i][1] <<" "<< qTable[i][2]<<" " << qTable[i][3]<< endl;
   }
   for(int i=0;i<steps2goal.size()&&i<50;i++){
-    cout<< steps2goal[i]<< endl;
+    //cout<< steps2goal[i]<< endl;
   }
 }
