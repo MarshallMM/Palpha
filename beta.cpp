@@ -64,6 +64,7 @@ int main(){
   vector<int> state_vector;
   vector<vector<double>> qTable;
   vector<double> actionQ;
+  vector<int> steps2goal;
   int hight;
   int width;
   int goal_state;
@@ -84,22 +85,25 @@ int main(){
   double gamma;
   int agent_old_state;
   double maxQ;
+  int stepscounter;
 
 
-  hight= 5; //hight of the gridworld
-  width=8; //width of the gridworld
-  epsilon=1; //exploration chance 0-1
+
+  hight= 10; //hight of the gridworld
+  width=20; //width of the gridworld
+  epsilon=0.25; //exploration chance 0-1
   alpha=0.1;  //memory retaining rate 0-1
   gamma= 0.9;
 
 
-  max_iterations=1000; //max number of iterations
+  max_iterations=100000; //max number of iterations
   Nstates=hight*width; //number of states
   goal_state=floor(Nstates*LYRAND); //randomly makes a goal state
   agent_start_state=floor(Nstates*LYRAND); //randomly makes a start state
   ruleOfThumbToggle=0; //set to 1 if rule of thumb is to be followed
 
   iterations=0;
+  stepscounter=0;
   agent_state=agent_start_state;
 
   for(int i=0;i<Nstates;i++){//for Nstates
@@ -115,6 +119,7 @@ int main(){
 
   while(iterations<max_iterations && agent_state != goal_state){
     iterations++;
+    stepscounter++;
     if(player){//human plays
       //imputs an angle in degrees gets a cardinal direction to move from that
       cout << "Pick polar direction in degrees to move: 0=right, 90=up, 180=left, 270=down..." << endl;
@@ -160,34 +165,10 @@ int main(){
       // exploration
       if(LYRAND<epsilon){
         direction=floor(LYRAND*4);//picks a random direction
-        agent_old_state=agent_state;
-        agent_state=move(agent_state,direction,hight,width);//moves the agent
-
-        //values the move
-        if(agent_state==goal_state){
-          actionValue=100;
-        }
-        else{
-          actionValue=-1;
-        }//end of evaluating move
-        actionQ=qTable[agent_state];//gets the vector of actions for the state
-        maxQ=0;
-        for (int j=0; j<actionQ.size(); j++) //this loop get the maxQ
-            {
-                if (maxQ<actionQ[j])
-                {
-                    maxQ=actionQ[j];
-                }
-            }
-        if(agent_state!=agent_start_state && agent_state!=agent_old_state){
-          qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
-          //cout << maxQ << endl;
-        }
-        
-        
-        
-      }//end exploration
+      }
       else{//exploitation
+        maxQ=0;
+        actionQ=qTable[agent_state];
         for (int j=0; j<actionQ.size(); j++) //this loop get the maxQ index
             {
                 if (maxQ<actionQ[j])
@@ -196,35 +177,35 @@ int main(){
                     direction=j;
                 }
             }
-        agent_old_state=agent_state;
-        agent_state=move(agent_state,direction,hight,width);//moves the agent
-        //values the move
-        if(agent_state==goal_state){
-          actionValue=100;
-        }
-        else{
-          actionValue=-1;
-        }//end of evaluating move
-        actionQ=qTable[agent_state];//gets the vector of actions for the state
-        maxQ=0;
-        for (int j=0; j<actionQ.size(); j++) //this loop get the maxQ
-            {
-                if (maxQ<actionQ[j])
-                {
-                    maxQ=actionQ[j];
-                }
-            }
-        if(agent_state!=agent_start_state && agent_state!=agent_old_state){
-          qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
-          //cout << maxQ << endl;
-        }
-        
-        
-        
       }//end exploitation
+      agent_old_state=agent_state;
+      agent_state=move(agent_state,direction,hight,width);//moves the agent
+
+      //values the move
+      if(agent_state==goal_state){
+        actionValue=100;
+      }
+      else{
+        actionValue=-1;
+      }//end of evaluating move
+      actionQ=qTable[agent_state];//gets the vector of actions for the state
+      maxQ=0;
+      for (int j=0; j<actionQ.size(); j++) //this loop get the maxQ
+          {
+              if (maxQ<actionQ[j])
+              {
+                  maxQ=actionQ[j];
+              }
+          }
+      if(agent_state!=agent_start_state && agent_state!=agent_old_state){
+        qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
+        //cout << maxQ << endl;
+      }
     }
     if(agent_state == goal_state){//reset agent back to start if goal is reached
       agent_state=agent_start_state;
+      steps2goal.push_back(stepscounter);//vector of number of steps it took to get to goal
+      stepscounter=0;
     }
   }//end while
   if(goal_state==agent_state){
@@ -234,7 +215,10 @@ int main(){
   //outputs start and goal states and positions
   cout << "start state: " << agent_start_state <<" xPos: "<< xPos(agent_start_state,hight,width)<<" yPos: "<< yPos(agent_start_state,hight,width)<<endl;
   cout << "goal state " << goal_state <<" xPos: "<< xPos(goal_state,hight,width)<<" yPos: "<< yPos(goal_state,hight,width)<<endl;
-  for(int i=0;i<Nstates-1;i++){
+  for(int i=0;i<Nstates;i++){
     cout << qTable[i][0]<<" "<<qTable[i][1] <<" "<< qTable[i][2]<<" " << qTable[i][3]<< endl;
+  }
+  for(int i=0;i<steps2goal.size()&&i<50;i++){
+    cout<< steps2goal[i]<< endl;
   }
 }
