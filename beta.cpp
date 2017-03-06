@@ -53,7 +53,7 @@ int move(int agent_state,int direction, int hight, int width){
   if(x<1 || x>width || y<1 ||y>hight){
     x=agent_state%width+1;
     y=1+floor(agent_state/width);
-    cout<<"Not moving off gridworld!"<<endl;
+    //cout<<"Not moving off gridworld!"<<endl;
   }
   agent_state=(y-1)*width+(x-1);
   return agent_state;
@@ -86,14 +86,14 @@ int main(){
   double maxQ;
 
 
-  hight= 53; //hight of the gridworld
-  width=80; //width of the gridworld
-  epsilon=0.25; //exploration chance 0-1
+  hight= 5; //hight of the gridworld
+  width=8; //width of the gridworld
+  epsilon=1; //exploration chance 0-1
   alpha=0.1;  //memory retaining rate 0-1
   gamma= 0.9;
 
 
-  max_iterations=10000; //max number of iterations
+  max_iterations=1000; //max number of iterations
   Nstates=hight*width; //number of states
   goal_state=floor(Nstates*LYRAND); //randomly makes a goal state
   agent_start_state=floor(Nstates*LYRAND); //randomly makes a start state
@@ -102,12 +102,12 @@ int main(){
   iterations=0;
   agent_state=agent_start_state;
 
-  for(int i;i<Nstates;i++){//for Nstates
-    //builds state_vector form 0 to nstates
+  for(int i=0;i<Nstates;i++){//for Nstates
+    //builds state_vector form 0 to Nstates
 
     state_vector.push_back(i);
     //builds qTable
-    qTable.push_back({0,0,0,0});
+    qTable.push_back({LYRAND+2,LYRAND+2,LYRAND+2,LYRAND+2});
   }
 
   cout << "Play as human? 1=yes, 0=no" << endl;
@@ -179,7 +179,10 @@ int main(){
                     maxQ=actionQ[j];
                 }
             }
-        qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
+        if(agent_state!=agent_start_state && agent_state!=agent_old_state){
+          qTable[agent_old_state][direction]=actionValue+gamma*maxQ;
+          //cout << maxQ << endl;
+        }
       }
       else{//exploitation
 
@@ -196,4 +199,7 @@ int main(){
   //outputs start and goal states and positions
   cout << "start state: " << agent_start_state <<" xPos: "<< xPos(agent_start_state,hight,width)<<" yPos: "<< yPos(agent_start_state,hight,width)<<endl;
   cout << "goal state " << goal_state <<" xPos: "<< xPos(goal_state,hight,width)<<" yPos: "<< yPos(goal_state,hight,width)<<endl;
+  for(int i=0;i<Nstates-1;i++){
+    cout << qTable[i][0]<<" "<<qTable[i][1] <<" "<< qTable[i][2]<<" " << qTable[i][3]<< endl;
+  }
 }
