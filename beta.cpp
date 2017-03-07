@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <vector>
 #include <math.h>
+#include <stdlib.h>
 #define LYRAND (double)rand()/RAND_MAX
 using namespace std;
 
@@ -86,6 +87,9 @@ int main(){
   int agent_old_state;
   double maxQ;
   int stepscounter;
+  int maxReward;
+  int optimalSteps;
+  int minSteps;
 
 
 
@@ -94,9 +98,10 @@ int main(){
   epsilon=0.25; //exploration chance 0-1
   alpha=0.1;  //memory retaining rate 0-1
   gamma= 0.9;
+  maxReward=100; //maximum reward when goal is found
 
 
-  max_iterations=1000000; //max number of iterations
+  max_iterations=100000; //max number of iterations
   Nstates=hight*width; //number of states
   goal_state=floor(Nstates*LYRAND); //randomly makes a goal state
   agent_start_state=floor(Nstates*LYRAND); //randomly makes a start state
@@ -111,11 +116,12 @@ int main(){
 
     state_vector.push_back(i);
     //builds qTable
-    qTable.push_back({LYRAND+2,LYRAND+2,LYRAND+2,LYRAND+2});
+    qTable.push_back({LYRAND-1,LYRAND-1,LYRAND-1,LYRAND-1});
   }
 
-  cout << "Play as human? 1=yes, 0=no" << endl;
-  cin >> player;
+  //cout << "Play as human? 1=yes, 0=no" << endl;
+  //cin >> player;
+  player=0;
 
   while(iterations<max_iterations && agent_state != goal_state){
     iterations++;
@@ -183,7 +189,7 @@ int main(){
 
       //values the move
       if(agent_state==goal_state){
-        actionValue=100;
+        actionValue=maxReward;
       }
       else{
         actionValue=-1;
@@ -220,7 +226,35 @@ int main(){
   for(int i=0;i<Nstates;i++){
     cout << qTable[i][0]<<" "<<qTable[i][1] <<" "<< qTable[i][2]<<" " << qTable[i][3]<< endl;
   }
-  for(int i=0;i<steps2goal.size()&&i<50;i++){
-    //cout<< steps2goal[i]<< endl;
+
+  for(int i=0;i<steps2goal.size()&&i<50;i++){//prints the steps it took to get to the goal for the first 50 episodes
+    cout<< steps2goal[i]<< endl;
+  }
+//testD No Q-value ever exceeds the reward given by reaching the goal state.
+  for(int i=0;i<qTable.size();i++){
+    for(int j=0;j<4;j++){
+      assert(qTable[i][j]<maxReward+1);
+    }
+  }
+//TestE When the agent reaches the goal state, it is reset to the initial state and is identical to a freshly-initialized agent, except in updated Q-values.
+  assert(steps2goal.size()>0);
+//TestF
+  //calculates max steps
+  optimalSteps=abs(xPos(goal_state,hight,width)-xPos(agent_start_state,hight,width));
+  optimalSteps=optimalSteps+abs(yPos(goal_state,hight,width)-yPos(agent_start_state,hight,width));
+  minSteps=1000000;
+  //gets the smallest value of steps in the last ten episodes
+  for(int i=steps2goal.size()-10;i<steps2goal.size();i++){
+    if(minSteps>steps2goal[i]){
+      minSteps=steps2goal[i];
+    }
+  }
+  assert(minSteps<2*optimalSteps);
+//Statistical runs logger
+ofstream out_data("MarshallMillersPBetaSteps2Goal.txt");
+  for (int i=0; i<steps2goal.size(); i++){
+
+      //out_data << pullhistory[i].pullnumber << " ";
+      out_data << steps2goal[i] << endl;
   }
 }
