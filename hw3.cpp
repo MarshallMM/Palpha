@@ -32,9 +32,11 @@ int yPos(int state,int hight, int width){// function for getting ypos from state
   return 1+floor(state/width);
 }
 
-int move(int agent_state,int direction, int hight, int width){
+int move(int agent_state,int direction, int hight, int width, vector<int> walls){
   int x;
   int y;
+  int wallx;
+  int wally;
 
   //gets the x and y positions from the state
   x=agent_state%width+1;
@@ -62,21 +64,33 @@ int move(int agent_state,int direction, int hight, int width){
     y=1;
   }
 //makes sure new position is on gridworld
-  if(x<1 || x>width || y<1 ||y>hight){
+  if(x<1 || x>width || y<1 ||y>hight ){
     x=agent_state%width+1;
     y=1+floor(agent_state/width);
     //cout<<"Not moving off gridworld!"<<endl;
   }
+  //makes sure agent is not on a wall
+  for(int i=0;i<walls.size();i++){
+    wallx=walls[i]%width+1;
+    wally=1+floor(walls[i]/width);
+    if(x==wallx && y==wally){//resets x,y back to original if moved onto a wall
+      x=agent_state%width+1;
+      y=1+floor(agent_state/width);
+    }
+  }
+
   agent_state=(y-1)*width+(x-1);
   return agent_state;
 }
 
 int main(){
   srand(time(NULL));
+  vector<int> walledStates;
   vector<int> state_vector;
   vector<vector<double>> qTable;
   vector<double> actionQ;
   vector<int> steps2goal;
+  int wallAState;
   int hight;
   int width;
   int goal_state;
@@ -110,13 +124,13 @@ int main(){
   alpha=0.1;  //memory retaining rate 0-1
   gamma= 0.9;
   maxReward=100; //maximum reward when goal is found
+  ruleOfThumbToggle=0; //set to 1 if rule of thumb is to be followed
 
-
+wallAState=0;
   max_iterations=100000; //max number of iterations
   Nstates=hight*width; //number of states
   goal_state=floor(Nstates*LYRAND); //randomly makes a goal state
   agent_start_state=floor(Nstates*LYRAND); //randomly makes a start state
-  ruleOfThumbToggle=0; //set to 1 if rule of thumb is to be followed
 
   iterations=0;
   stepscounter=0;
@@ -129,6 +143,14 @@ int main(){
     //builds qTable
     qTable.push_back({LYRAND-1,LYRAND-1,LYRAND-1,LYRAND-1});
   }
+  //builds walled states vector
+  for(int i=0;i<Nstates/3;i++){
+    wallAState=rand()%Nstates;
+    if(wallAState != agent_start_state && wallAState != goal_state){
+      walledStates.push_back(wallAState);
+    }
+  }
+
 
   //cout << "Play as human? 1=yes, 0=no" << endl;
   //cin >> player;
@@ -149,7 +171,7 @@ int main(){
       cout << "old state: " << agent_state <<" xPos: "<< xPos(agent_state,hight,width)<<" yPos: "<< yPos(agent_state,hight,width)<<endl;
       cout <<"cardinal direction (0-3): "<<direction << endl;
       //moves agent
-      agent_state=move(agent_state,direction,hight,width);
+      agent_state=move(agent_state,direction,hight,width,walledStates);
       //outpusts new position
       cout << "new state: " << agent_state <<" xPos: "<< xPos(agent_state,hight,width)<<" yPos: "<< yPos(agent_state,hight,width)<<endl;
     }
@@ -161,20 +183,20 @@ int main(){
 
       //move based on where goal is
       if(dx>0){//move right
-        agent_state=move(agent_state,0,hight,width);
-        cout<<"right"<<endl;
+        agent_state=move(agent_state,0,hight,width,walledStates);
+        //cout<<"right"<<endl;
       }
       else if(dx<0){//move left
-        agent_state=move(agent_state,2,hight,width);
-        cout<<"left"<<endl;
+        agent_state=move(agent_state,2,hight,width,walledStates);
+        //cout<<"left"<<endl;
       }
       else if(dy>0){//move up
-        agent_state=move(agent_state,1,hight,width);
-        cout<<"up"<<endl;
+        agent_state=move(agent_state,1,hight,width,walledStates);
+        //cout<<"up"<<endl;
       }
       else if(dy<0){//move down
-        agent_state=move(agent_state,3,hight,width);
-        cout<<"down"<<endl;
+        agent_state=move(agent_state,3,hight,width,walledStates);
+        //cout<<"down"<<endl;
       }
 
     }
@@ -196,7 +218,7 @@ int main(){
             }
       }//end exploitation
       agent_old_state=agent_state;
-      agent_state=move(agent_state,direction,hight,width);//moves the agent
+      agent_state=move(agent_state,direction,hight,width,walledStates);//moves the agent
 
       //values the move
       if(agent_state==goal_state){
@@ -260,12 +282,12 @@ int main(){
       minSteps=steps2goal[i];
     }
   }
-  assert(minSteps<2*optimalSteps);
+  //assert(minSteps<2*optimalSteps);
 //Statistical runs logger
 ofstream out_data("MarshallMillersPBetaSteps2Goal.txt");
   for (int i=0; i<steps2goal.size(); i++){
 
       //out_data << pullhistory[i].pullnumber << " ";
-      out_data << steps2goal[i] << endl;
+    //  out_data << steps2goal[i] << endl;
   }
 }
