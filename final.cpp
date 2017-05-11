@@ -96,7 +96,7 @@ int main(){
   int maxQ;
   int startx=0;
   int starty=LYRAND*city_width;
-  int startz=city_height-1;
+  int startz=1;
   double epsilon=0.2;
   double epsilon_decay_rate=1;// multiplied to epsilon after a goal is found
   double alpha=0.1;
@@ -129,6 +129,16 @@ int main(){
       }
     }
   }
+  for(int i=0;i<buildings.size();i++){//tests if goal is in a building and raises it too the top
+    if(buildings[i].xVal==startx){
+      if(buildings[i].yVal==starty){
+        if(buildings[i].zVal==startz){
+          startz++;
+        }
+      }
+    }
+  }
+  agent.zVal=startz;
   //builds goal
   state_class goal;
   goal.init();
@@ -209,11 +219,14 @@ while(iterations<max_iterations){
     agent.xVal=startx;
     agent.yVal=starty;
     agent.zVal=startz;
-    cout<<stepscounter<< endl;
+    cout<<"Steps to find goal this episdode: "<<stepscounter<< endl;
     steps2goal.push_back(stepscounter);//vector of number of steps it took to get to goal
     stepscounter=0;
     agent_state=agent.zVal*(city_width*city_length)+agent.yVal*city_width+agent.xVal;
     epsilon=epsilon*epsilon_decay_rate;
+    if(iterations>0.8*max_iterations){
+      epsilon=0.1;
+    }
   }
   //cout<<"check4 "<< iterations<< endl;
 }//end while
